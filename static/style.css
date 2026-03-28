@@ -1,15 +1,19 @@
 :root {
+  --accent: #ff4b4b;
+  --accent-dark: #e03c3c;
   --lotto-yellow: #fbc400;
   --lotto-blue: #069;
   --lotto-red: #d40000;
   --lotto-gray: #555;
   --lotto-green: #2c7a00;
-  --bg: #f5f5f5;
+  --bg: #f0f2f6;
   --card-bg: #fff;
-  --text: #222;
-  --text-muted: #777;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --text: #31333f;
+  --text-muted: #666;
+  --border: #e0e0e0;
+  --row-alt: #f5f7fb;
+  --radius: 10px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 * {
@@ -27,25 +31,28 @@ body {
   flex-direction: column;
 }
 
+/* ── 헤더 ── */
 header {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: #fff;
+  background: #fff;
+  border-bottom: 3px solid var(--accent);
   text-align: center;
-  padding: 40px 20px 32px;
+  padding: 28px 20px 22px;
 }
 
 header h1 {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.5px;
-  margin-bottom: 8px;
+  color: var(--text);
+  margin-bottom: 6px;
 }
 
 header p {
-  color: rgba(255,255,255,0.65);
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
 }
 
+/* ── 레이아웃 ── */
 main {
   flex: 1;
   max-width: 680px;
@@ -57,40 +64,42 @@ main {
   gap: 20px;
 }
 
+/* ── 카드 ── */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
 
 .card-header {
-  padding: 16px 20px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .lotto-header {
-  background: linear-gradient(135deg, #fbc400 0%, #f9a000 100%);
-  color: #1a1a00;
+  border-left: 4px solid var(--lotto-yellow);
 }
 
 .pension-header {
-  background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%);
-  color: #fff;
+  border-left: 4px solid var(--accent);
 }
 
 .card-header h2 {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  color: var(--text);
+  margin-bottom: 3px;
 }
 
 .badge {
   font-size: 0.72rem;
   font-weight: 500;
-  opacity: 0.8;
+  color: var(--text-muted);
 }
 
 .card-body {
@@ -100,6 +109,7 @@ main {
   gap: 16px;
 }
 
+/* ── 결과 영역 ── */
 .result-group {
   display: flex;
   flex-direction: column;
@@ -107,7 +117,7 @@ main {
 }
 
 .result-label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
@@ -128,7 +138,7 @@ main {
   font-size: 0.85rem;
 }
 
-/* 로또 볼 */
+/* ── 로또 볼 ── */
 .ball {
   width: 42px;
   height: 42px;
@@ -155,7 +165,7 @@ main {
 .ball-31 { background: #555; }
 .ball-41 { background: #2c7a00; }
 
-/* 연금복권 자리 */
+/* ── 연금복권 자리 ── */
 .pension-digit {
   display: flex;
   flex-direction: column;
@@ -172,7 +182,7 @@ main {
 .pension-num {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #2196f3, #1565c0);
+  background: var(--accent);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -182,16 +192,10 @@ main {
   color: #fff;
 }
 
-.info-text {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  min-height: 16px;
-}
-
-/* 데이터 정보 패널 */
+/* ── 데이터 정보 패널 ── */
 .data-info {
-  background: #f9f9f9;
-  border: 1px solid #eee;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
   display: flex;
@@ -249,7 +253,7 @@ main {
   white-space: nowrap;
 }
 
-.freq-label.up   { color: #d40000; }
+.freq-label.up   { color: var(--accent); }
 .freq-label.down { color: #069; }
 
 .freq-balls {
@@ -276,7 +280,7 @@ main {
   color: var(--text-muted);
 }
 
-/* 연금복권 자리별 통계 */
+/* ── 연금복권 자리별 통계 ── */
 .pension-pos-stat {
   display: flex;
   align-items: center;
@@ -289,6 +293,7 @@ main {
   color: var(--text);
 }
 
+/* ── 버튼 ── */
 .btn {
   padding: 12px;
   border: none;
@@ -297,6 +302,12 @@ main {
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--accent-dark);
 }
 
 .btn:active {
@@ -308,26 +319,16 @@ main {
   cursor: not-allowed;
 }
 
-.btn-lotto {
-  background: #fbc400;
-  color: #1a1a00;
-}
+/* .btn-lotto, .btn-pension 은 동일하게 accent 색 사용 */
+.btn-lotto  { background: var(--accent); color: #fff; }
+.btn-pension { background: var(--accent); color: #fff; }
 
-.btn-pension {
-  background: #2196f3;
-  color: #fff;
-}
-
-.btn:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-/* 로딩 스피너 */
+/* ── 로딩 스피너 ── */
 .spinner {
   width: 22px;
   height: 22px;
-  border: 3px solid rgba(0,0,0,0.15);
-  border-top-color: currentColor;
+  border: 3px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
@@ -339,6 +340,7 @@ main {
   to { transform: rotate(360deg); }
 }
 
+/* ── 푸터 ── */
 footer {
   text-align: center;
   padding: 20px;
