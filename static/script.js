@@ -77,20 +77,32 @@ function renderPensionDataInfo(data) {
     : '통계 데이터 없음';
 
 
-  const statsEl = document.getElementById('pension-pos-stats');
+  const topEl = document.getElementById('pension-pos-stats-top');
+  const bottomEl = document.getElementById('pension-pos-stats-bottom');
   const labels = ['백만', '십만', '만', '천', '백', '십'];
-  statsEl.innerHTML = '';
+  topEl.innerHTML = '';
+  bottomEl.innerHTML = '';
   if (data.position_stats?.length) {
-    const title = document.createElement('span');
-    title.className = 'freq-label';
-    title.style.color = 'var(--text-muted)';
-    title.textContent = '자리별 최다 출현:';
-    statsEl.appendChild(title);
+    const topTitle = document.createElement('span');
+    topTitle.className = 'freq-label up';
+    topTitle.textContent = '자주 나온 번호:';
+    topEl.appendChild(topTitle);
     data.position_stats.forEach(({ pos, top_digit, top_count }) => {
       const span = document.createElement('span');
       span.className = 'pension-pos-stat';
       span.innerHTML = `${labels[pos - 1]} <strong>${top_digit}</strong>(${top_count}회)`;
-      statsEl.appendChild(span);
+      topEl.appendChild(span);
+    });
+
+    const bottomTitle = document.createElement('span');
+    bottomTitle.className = 'freq-label down';
+    bottomTitle.textContent = '덜 나온 번호:';
+    bottomEl.appendChild(bottomTitle);
+    data.position_stats.forEach(({ pos, bottom_digit, bottom_count }) => {
+      const span = document.createElement('span');
+      span.className = 'pension-pos-stat';
+      span.innerHTML = `${labels[pos - 1]} <strong>${bottom_digit}</strong>(${bottom_count}회)`;
+      bottomEl.appendChild(span);
     });
   }
 }

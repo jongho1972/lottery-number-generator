@@ -145,10 +145,13 @@ def generate_pension(all_numbers: list) -> dict:
         low_freq.append(max(scores_low, key=scores_low.get))
 
         top = max(counter, key=counter.get)
+        bottom = min(counter, key=counter.get)
         position_stats.append({
             "pos": pos + 1,
             "top_digit": top,
             "top_count": counter[top],
+            "bottom_digit": bottom,
+            "bottom_count": counter[bottom],
         })
 
     cache_updated = None
