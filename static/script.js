@@ -21,7 +21,7 @@ function renderLottoBalls(containerId, numbers) {
 function renderPensionDigits(containerId, numbers) {
   const el = document.getElementById(containerId);
   el.innerHTML = '';
-  const labels = ['백만', '십만', '만', '천', '백', '십'];
+  const labels = ['십만', '만', '천', '백', '십', '일'];
   numbers.forEach((d, i) => {
     const wrap = document.createElement('div');
     wrap.className = 'pension-digit';
@@ -79,7 +79,7 @@ function renderPensionDataInfo(data) {
 
   const topEl = document.getElementById('pension-pos-stats-top');
   const bottomEl = document.getElementById('pension-pos-stats-bottom');
-  const labels = ['백만', '십만', '만', '천', '백', '십'];
+  const labels = ['십만', '만', '천', '백', '십', '일'];
   topEl.innerHTML = '';
   bottomEl.innerHTML = '';
   if (data.position_stats?.length) {
