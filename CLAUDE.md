@@ -19,6 +19,12 @@ python collect_pension.py
 
 **백엔드**: `app.py` — FastAPI 단일 파일 서버
 **프론트엔드**: `static/` — 순수 HTML/CSS/JS (프레임워크 없음)
+
+**디자인 토큰** (`static/style.css`): ETF 대시보드와 동일한 톤앤매너
+- 배경: `#f0f2f6` / 강조색: `#ff4b4b` / 텍스트: `#31333f` / 테두리: `#e0e0e0`
+- 헤더: 흰 배경 + `#ff4b4b` 하단 3px 보더
+- 카드: 흰 배경 + 좌측 컬러 보더 (로또 노랑, 연금복권 빨강), 그라디언트 없음
+- 버튼: 로또·연금복권 모두 `#ff4b4b` 통일
 **데이터**: 두 가지 방식으로 분리 운영
 
 | 복권 종류 | 데이터 소스 | 캐시 |
@@ -37,6 +43,16 @@ python collect_pension.py
 
 - **로또**: 전체 회차 번호별 출현 빈도로 확률 계산 → `확률 × random()`으로 고빈도 추천, `(1/확률) × random()`으로 저빈도 추천
 - **연금복권**: 자리(0~5)별로 독립적으로 빈도 계산 → 동일한 두 전략을 각 자리에 적용해 고빈도/저빈도 6자리 각각 생성
+
+### API 응답 구조
+
+- **`/api/lotto`**: `high_freq`, `low_freq`, `total_rounds`, `round_range`, `top5`, `bottom5`, `cache_updated`
+- **`/api/pension`**: `high_freq`, `low_freq`, `total_rounds`, `round_range`, `cache_updated`, `position_stats[]`
+  - `position_stats` 각 항목: `pos`, `top_digit`, `top_count`, `bottom_digit`, `bottom_count`
+
+### GitHub 푸시 전 체크리스트
+
+1. `data/pension.json` 최신 회차 확인 → 신규 회차 있으면 `python collect_pension.py` 먼저 실행
 
 ### 배포
 
