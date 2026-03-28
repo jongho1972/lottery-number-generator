@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>복권번호생성기</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>통계 기반 복권번호 생성기</h1>
+    <p>과거 당첨번호 통계를 기반으로 번호를 추천해드립니다</p>
+  </header>
+
+  <main>
+    <!-- 로또 6/45 -->
+    <section class="card">
+      <div class="card-header lotto-header">
+        <div>
+          <h2>로또 6/45</h2>
+          <span class="badge">1~45 중 6개 선택</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <button class="btn btn-lotto" id="lotto-btn" onclick="generateLotto()">
+          번호 생성하기
+        </button>
+        <div class="result-group">
+          <div class="result-label">자주 나온 번호 우선</div>
+          <div class="balls-container" id="lotto-high">
+            <span class="placeholder">번호 생성하기 버튼을 눌러주세요</span>
+          </div>
+        </div>
+        <div class="result-group">
+          <div class="result-label">덜 나온 번호 우선</div>
+          <div class="balls-container" id="lotto-low">
+            <span class="placeholder">번호 생성하기 버튼을 눌러주세요</span>
+          </div>
+        </div>
+        <div class="data-info" id="lotto-data-info" hidden>
+          <div class="data-info-title">사용된 데이터</div>
+          <div class="data-info-grid">
+            <div class="data-stat">
+              <span class="data-stat-label">분석 회차</span>
+              <span class="data-stat-value" id="lotto-round-range">-</span>
+            </div>
+          </div>
+          <div class="freq-row">
+            <div class="freq-group">
+              <span class="freq-label up">자주 나온 번호</span>
+              <div class="freq-balls" id="lotto-top5"></div>
+            </div>
+            <div class="freq-group">
+              <span class="freq-label down">덜 나온 번호</span>
+              <div class="freq-balls" id="lotto-bottom5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 연금복권 720+ -->
+    <section class="card">
+      <div class="card-header pension-header">
+        <div>
+          <h2>연금복권 720+</h2>
+          <span class="badge">각 자리 0~9 선택</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <button class="btn btn-pension" id="pension-btn" onclick="generatePension()">
+          번호 생성하기
+        </button>
+        <div class="result-group">
+          <div class="result-label">추천 번호</div>
+          <div class="pension-container" id="pension-numbers">
+            <span class="placeholder">번호 생성하기 버튼을 눌러주세요</span>
+          </div>
+        </div>
+        <div class="data-info" id="pension-data-info" hidden>
+          <div class="data-info-title">사용된 데이터</div>
+          <div class="data-info-grid">
+            <div class="data-stat">
+              <span class="data-stat-label">분석 회차</span>
+              <span class="data-stat-value" id="pension-round-range">-</span>
+            </div>
+          </div>
+          <div class="freq-row">
+            <div class="freq-group" id="pension-pos-stats"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>이 서비스는 재미를 위한 것이며, 당첨을 보장하지 않습니다.</p>
+    <p>개발 : 이종호 (<a href="mailto:jongho1972@gmail.com">jongho1972@gmail.com</a>)</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

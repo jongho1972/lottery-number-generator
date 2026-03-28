@@ -1,0 +1,372 @@
+:root {
+  --lotto-yellow: #fbc400;
+  --lotto-blue: #069;
+  --lotto-red: #d40000;
+  --lotto-gray: #555;
+  --lotto-green: #2c7a00;
+  --bg: #f5f5f5;
+  --card-bg: #fff;
+  --text: #222;
+  --text-muted: #777;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  text-align: center;
+  padding: 40px 20px 32px;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+header p {
+  color: rgba(255,255,255,0.65);
+  font-size: 0.9rem;
+}
+
+main {
+  flex: 1;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lotto-header {
+  background: linear-gradient(135deg, #fbc400 0%, #f9a000 100%);
+  color: #1a1a00;
+}
+
+.pension-header {
+  background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%);
+  color: #fff;
+}
+
+.card-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.balls-container,
+.pension-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+}
+
+.placeholder {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* 로또 볼 */
+.ball {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+  0%   { transform: scale(0); opacity: 0; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.ball-1  { background: #fbc400; color: #000; }
+.ball-11 { background: #069; }
+.ball-21 { background: #d40000; }
+.ball-31 { background: #555; }
+.ball-41 { background: #2c7a00; }
+
+/* 연금복권 자리 */
+.pension-digit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  animation: pop 0.25s ease;
+}
+
+.pension-pos {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.pension-num {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #2196f3, #1565c0);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.info-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  min-height: 16px;
+}
+
+/* 데이터 정보 패널 */
+.data-info {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.data-info-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-info-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.data-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.data-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.data-stat-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.freq-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.freq-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.freq-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.freq-label.up   { color: #d40000; }
+.freq-label.down { color: #069; }
+
+.freq-balls {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.freq-ball {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.freq-ball .ball {
+  width: 30px;
+  height: 30px;
+  font-size: 0.72rem;
+}
+
+.freq-ball-count {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+/* 연금복권 자리별 통계 */
+.pension-pos-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.pension-pos-stat strong {
+  color: var(--text);
+}
+
+.btn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-lotto {
+  background: #fbc400;
+  color: #1a1a00;
+}
+
+.btn-pension {
+  background: #2196f3;
+  color: #fff;
+}
+
+.btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+/* 로딩 스피너 */
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(0,0,0,0.15);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 400px) {
+  .ball {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+  .pension-num {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+}
