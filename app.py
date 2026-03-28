@@ -117,14 +117,17 @@ def generate_lotto(all_numbers: list) -> dict:
 
 def generate_pension(all_numbers: list) -> dict:
     if not all_numbers:
+        rand6 = [str(random.randint(0, 9)) for _ in range(6)]
         return {
-            "numbers": [str(random.randint(0, 9)) for _ in range(6)],
+            "high_freq": rand6,
+            "low_freq": rand6,
             "total_rounds": 0,
             "position_stats": [],
             "cache_updated": None,
         }
 
-    result = []
+    high_freq = []
+    low_freq = []
     position_stats = []
     for pos in range(6):
         digits = [row[pos] for row in all_numbers]
@@ -134,8 +137,12 @@ def generate_pension(all_numbers: list) -> dict:
                 counter[d] = 1
         total = sum(counter.values())
         probs = {k: v / total for k, v in counter.items()}
-        scores = {k: random.random() * v for k, v in probs.items()}
-        result.append(max(scores, key=scores.get))
+
+        scores_high = {k: random.random() * v for k, v in probs.items()}
+        high_freq.append(max(scores_high, key=scores_high.get))
+
+        scores_low = {k: random.random() / v for k, v in probs.items()}
+        low_freq.append(max(scores_low, key=scores_low.get))
 
         top = max(counter, key=counter.get)
         position_stats.append({
@@ -149,7 +156,8 @@ def generate_pension(all_numbers: list) -> dict:
         cache_updated = datetime.fromtimestamp(PENSION_DATA_FILE.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
 
     return {
-        "numbers": result,
+        "high_freq": high_freq,
+        "low_freq": low_freq,
         "total_rounds": len(all_numbers),
         "round_range": {"start": 1, "end": len(all_numbers)},
         "position_stats": position_stats,

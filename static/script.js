@@ -18,8 +18,8 @@ function renderLottoBalls(containerId, numbers) {
   });
 }
 
-function renderPensionDigits(numbers) {
-  const el = document.getElementById('pension-numbers');
+function renderPensionDigits(containerId, numbers) {
+  const el = document.getElementById(containerId);
   el.innerHTML = '';
   const labels = ['백만', '십만', '만', '천', '백', '십'];
   numbers.forEach((d, i) => {
@@ -123,11 +123,13 @@ async function generatePension() {
     if (!res.ok) throw new Error((await res.json()).error || '서버 오류');
     const data = await res.json();
 
-    renderPensionDigits(data.numbers);
+    renderPensionDigits('pension-high', data.high_freq);
+    renderPensionDigits('pension-low', data.low_freq);
     renderPensionDataInfo(data);
   } catch (e) {
-    document.getElementById('pension-numbers').innerHTML =
+    document.getElementById('pension-high').innerHTML =
       `<span class="placeholder" style="color:#c00">${e.message}</span>`;
+    document.getElementById('pension-low').innerHTML = '';
   } finally {
     setLoading('pension-btn', false);
   }
