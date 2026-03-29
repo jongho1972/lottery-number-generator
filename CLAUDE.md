@@ -52,7 +52,8 @@ python collect_pension.py
 
 ### GitHub 푸시 전 체크리스트
 
-1. `data/pension.json` 최신 회차 확인 → 신규 회차 있으면 `python collect_pension.py` 먼저 실행
+1. **연금복권** `data/pension.json` 최신 회차 확인 → 신규 회차 있으면 `python collect_pension.py` 먼저 실행
+2. **로또**는 별도 확인 불필요 — `cache/lotto.json`은 `.gitignore`에 있어 배포되지 않으며, Render 서버가 앱 시작 시 `api.lotto-haru.kr`에서 자동으로 최신 데이터를 수집함
 
 ### 배포
 
