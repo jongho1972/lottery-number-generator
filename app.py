@@ -7,7 +7,7 @@ import random
 import json
 import logging
 from pathlib import Path
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from collections import Counter
 from contextlib import asynccontextmanager
 
@@ -168,6 +168,10 @@ def generate_pension(all_numbers: list) -> dict:
     }
 
 
+KST = timezone(timedelta(hours=9))
+DEPLOY_TIME = datetime.now(KST).strftime("%Y년 %m월 %d일 %H:%M")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 앱 시작 시 백그라운드에서 데이터 미리 수집
@@ -210,6 +214,11 @@ async def api_status():
         "lotto_rounds": lotto_rounds,
         "pension_cached": is_cache_valid(PENSION_CACHE),
     }
+
+
+@app.get("/api/deploy-time")
+async def api_deploy_time():
+    return {"deploy_time": DEPLOY_TIME}
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

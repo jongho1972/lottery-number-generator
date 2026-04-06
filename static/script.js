@@ -107,6 +107,17 @@ function renderPensionDataInfo(data) {
   }
 }
 
+async function loadDeployTime() {
+  try {
+    const res = await fetch('/api/deploy-time');
+    if (res.ok) {
+      const { deploy_time } = await res.json();
+      document.getElementById('deploy-time').textContent = `최종 배포: ${deploy_time}`;
+    }
+  } catch {}
+}
+loadDeployTime();
+
 async function generateLotto() {
   setLoading('lotto-btn', true);
 
