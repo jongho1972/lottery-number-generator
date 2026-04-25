@@ -33,4 +33,4 @@ python collect_pension.py
 
 ## 개발
 
-이종호 (jongho1972@gmail.com)
+Built with Claude Code by 이종호 (jongho1972@gmail.com)
