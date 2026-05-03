@@ -12,10 +12,24 @@ from pathlib import Path
 API_URL = "https://www.dhlottery.co.kr/pt720/selectPstPt720WnList.do"
 OUTPUT_FILE = Path(__file__).parent / "data" / "pension.json"
 
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/130.0.0.0 Safari/537.36"
+)
+
 
 def fetch_pension_data() -> list[dict]:
     print("연금복권 데이터 수집 중...")
-    with urllib.request.urlopen(API_URL, timeout=15) as r:
+    req = urllib.request.Request(
+        API_URL,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Referer": "https://www.dhlottery.co.kr/pt720/result",
+            "Accept": "application/json, text/plain, */*",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=15) as r:
         raw = json.loads(r.read())
 
     results = raw["data"]["result"]
