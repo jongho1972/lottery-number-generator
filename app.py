@@ -221,4 +221,9 @@ async def api_deploy_time():
     return {"deploy_time": DEPLOY_TIME}
 
 
+@app.get("/healthz")
+async def healthz():
+    return {"ok": True}
+
+
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
