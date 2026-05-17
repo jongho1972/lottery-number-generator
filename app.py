@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 import random
 import json
 import logging
@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 LOTTO_DATA_FILE = Path("data/lotto.json")
 PENSION_DATA_FILE = Path("data/pension.json")
+STATIC_DIR = Path("static")
+INDEX_FILE = STATIC_DIR / "index.html"
 
 
 def load_lotto_data() -> list[dict]:
@@ -144,8 +146,22 @@ async def no_cache_for_static(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
     if path == "/" or path.endswith((".html", ".js", ".css")):
-        response.headers["Cache-Control"] = "no-cache"
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    """루트는 정적 파일 마운트보다 우선. 정적 자원 URL에 mtime 버전을 박아
+    사파리 모바일 메모리 캐시까지 우회."""
+    html = INDEX_FILE.read_text(encoding="utf-8")
+    js_v = int((STATIC_DIR / "script.js").stat().st_mtime)
+    css_v = int((STATIC_DIR / "style.css").stat().st_mtime)
+    html = html.replace('href="style.css"', f'href="style.css?v={css_v}"')
+    html = html.replace('src="script.js"', f'src="script.js?v={js_v}"')
+    return HTMLResponse(html)
 
 
 @app.get("/api/lotto")
