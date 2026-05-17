@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 import random
@@ -137,6 +137,15 @@ DEPLOY_TIME = datetime.now(KST).strftime("%Y년 %m월 %d일 %H:%M")
 
 
 app = FastAPI(title="복권번호생성기")
+
+
+@app.middleware("http")
+async def no_cache_for_static(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.endswith((".html", ".js", ".css")):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 @app.get("/api/lotto")
