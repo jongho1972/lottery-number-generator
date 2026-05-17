@@ -59,11 +59,15 @@ function renderFreqBalls(containerId, items) {
   });
 }
 
+function formatRoundRange(rr) {
+  const tail = rr.end_date ? ` (${rr.end_date})` : '';
+  return `1회 ~ ${rr.end}회${tail}`;
+}
+
 function renderLottoDataInfo(data) {
   const panel = document.getElementById('lotto-data-info');
   panel.hidden = false;
-  document.getElementById('lotto-round-range').textContent =
-    `1회 ~ ${data.round_range.end}회`;
+  document.getElementById('lotto-round-range').textContent = formatRoundRange(data.round_range);
 
   renderFreqBalls('lotto-top5', data.top5);
   renderFreqBalls('lotto-bottom5', data.bottom5);
@@ -73,7 +77,7 @@ function renderPensionDataInfo(data) {
   const panel = document.getElementById('pension-data-info');
   panel.hidden = false;
   document.getElementById('pension-round-range').textContent = data.total_rounds > 0
-    ? `1회 ~ ${data.round_range.end}회`
+    ? formatRoundRange(data.round_range)
     : '통계 데이터 없음';
 
 

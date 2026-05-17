@@ -15,24 +15,22 @@ LOTTO_DATA_FILE = Path("data/lotto.json")
 PENSION_DATA_FILE = Path("data/pension.json")
 
 
-def load_lotto_data() -> list[list[int]]:
-    """배포 시 포함된 data/lotto.json 을 읽어 번호 리스트만 반환"""
+def load_lotto_data() -> list[dict]:
+    """배포 시 포함된 data/lotto.json 을 읽어 회차 레코드 리스트 반환"""
     if not LOTTO_DATA_FILE.exists():
         logger.warning("data/lotto.json 없음 — collect_lotto.py 를 먼저 실행하세요")
         return []
     with open(LOTTO_DATA_FILE, encoding="utf-8") as f:
-        records = json.load(f)
-    return [r["numbers"] for r in records]
+        return json.load(f)
 
 
-def load_pension_data() -> list:
-    """배포 시 포함된 data/pension.json 을 읽어 반환"""
+def load_pension_data() -> list[dict]:
+    """배포 시 포함된 data/pension.json 을 읽어 회차 레코드 리스트 반환"""
     if not PENSION_DATA_FILE.exists():
         logger.warning("data/pension.json 없음 — collect_pension.py 를 먼저 실행하세요")
         return []
     with open(PENSION_DATA_FILE, encoding="utf-8") as f:
-        records = json.load(f)
-    return [r["numbers"] for r in records]
+        return json.load(f)
 
 
 def file_mtime_str(path: Path) -> str | None:
@@ -41,7 +39,19 @@ def file_mtime_str(path: Path) -> str | None:
     return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
 
 
-def generate_lotto(all_numbers: list) -> dict:
+def normalize_date(s: str | None) -> str | None:
+    """'YYYYMMDD' / 'YYYY-MM-DD' / 'YYYY.MM.DD' → 'YYYY-MM-DD'"""
+    if not s:
+        return None
+    digits = s.replace("-", "").replace(".", "")
+    if len(digits) == 8 and digits.isdigit():
+        return f"{digits[:4]}-{digits[4:6]}-{digits[6:8]}"
+    return s
+
+
+def generate_lotto(records: list[dict]) -> dict:
+    all_numbers = [r["numbers"] for r in records]
+    latest_date = normalize_date(records[-1].get("date")) if records else None
     flat = [n for row in all_numbers for n in row]
     counter = Counter(flat)
     for n in range(1, 46):
@@ -64,14 +74,16 @@ def generate_lotto(all_numbers: list) -> dict:
         "high_freq": result1,
         "low_freq": result2,
         "total_rounds": len(all_numbers),
-        "round_range": {"start": 1, "end": len(all_numbers)},
+        "round_range": {"start": 1, "end": len(all_numbers), "end_date": latest_date},
         "top5": top5,
         "bottom5": bottom5,
         "cache_updated": file_mtime_str(LOTTO_DATA_FILE),
     }
 
 
-def generate_pension(all_numbers: list) -> dict:
+def generate_pension(records: list[dict]) -> dict:
+    all_numbers = [r["numbers"] for r in records]
+    latest_date = normalize_date(records[-1].get("date")) if records else None
     if not all_numbers:
         rand6 = [str(random.randint(0, 9)) for _ in range(6)]
         return {
@@ -114,7 +126,7 @@ def generate_pension(all_numbers: list) -> dict:
         "high_freq": high_freq,
         "low_freq": low_freq,
         "total_rounds": len(all_numbers),
-        "round_range": {"start": 1, "end": len(all_numbers)},
+        "round_range": {"start": 1, "end": len(all_numbers), "end_date": latest_date},
         "position_stats": position_stats,
         "cache_updated": file_mtime_str(PENSION_DATA_FILE),
     }
