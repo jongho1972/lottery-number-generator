@@ -11,7 +11,10 @@ pip install -r requirements.txt
 # 서버 실행 (http://localhost:8000)
 uvicorn app:app --host 0.0.0.0 --port 8000
 
-# 연금복권 데이터 수집 (배포 전 또는 신규 회차 추가 시)
+# 로또 데이터 수집 (수동, 보통은 GitHub Actions가 매주 일요일 자동 실행)
+python collect_lotto.py
+
+# 연금복권 데이터 수집 (수동, 보통은 GitHub Actions가 매주 금요일 자동 실행)
 python collect_pension.py
 ```
 
@@ -25,17 +28,18 @@ python collect_pension.py
 - 헤더: 흰 배경 + `#ff4b4b` 하단 3px 보더
 - 카드: 흰 배경 + 좌측 컬러 보더 (로또 노랑, 연금복권 빨강), 그라디언트 없음
 - 버튼: 로또·연금복권 모두 `#ff4b4b` 통일
-**데이터**: 두 가지 방식으로 분리 운영
+**데이터**: 두 종목 모두 정적 JSON 파일을 GitHub Actions cron으로 자동 갱신하는 동일한 패턴
 
-| 복권 종류 | 데이터 소스 | 캐시 |
-|-----------|------------|------|
-| 로또 6/45 | `api.lotto-haru.kr` (비공식 JSON API) | `cache/lotto.json` (24시간) |
-| 연금복권 720+ | `data/pension.json` (배포 파일에 포함된 정적 파일) | 없음 |
+| 복권 종류 | 데이터 소스 | 정적 파일 | 자동 갱신 (KST) |
+|-----------|------------|------|------|
+| 로또 6/45 | `www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do` (동행복권 공식 ajax) | `data/lotto.json` | 매주 일요일 09:00 |
+| 연금복권 720+ | `www.dhlottery.co.kr/pt720/selectPstPt720WnList.do` (동행복권 공식 API) | `data/pension.json` | 매주 금요일 09:00 |
 
 ### 데이터 흐름
 
-- **로또**: 앱 시작 시 `lifespan`에서 백그라운드로 `fetch_lotto_data()` 실행 → `api.lotto-haru.kr`에서 50회차 단위 배치 요청 → `cache/lotto.json`에 저장. 24시간 캐시 유효 시 재수집 안 함.
-- **연금복권**: `collect_pension.py`를 로컬에서 실행하면 `www.dhlottery.co.kr/pt720/selectPstPt720WnList.do` API로 전체 회차를 수집해 `data/pension.json`에 저장. 앱은 이 파일을 정적으로 읽음(`load_pension_data()`).
+- **로또**: `collect_lotto.py`가 `/lt645/result` 페이지로 세션 쿠키 확보 + 최신 회차 파싱 → `selectPstLt645InfoNew.do?srchDir=older&srchCursorLtEpsd=N` 으로 10건씩 페이지네이션해 전체 수집 → `data/lotto.json` 저장. 앱은 이 파일을 정적으로 읽음(`load_lotto_data()`).
+- **연금복권**: `collect_pension.py`가 `/pt720/selectPstPt720WnList.do`로 전체 회차 수집 → `data/pension.json` 저장. 앱은 이 파일을 정적으로 읽음(`load_pension_data()`).
+- 두 종목 모두 GitHub Actions(.github/workflows/collect-{lotto,pension}.yml)가 추첨 다음 날 KST 09:00에 cron 실행 → 변경 사항이 있을 경우 `data/*.json`을 자동 커밋·푸시 → VPS 자동 배포로 반영.
 
 ### 번호 생성 알고리즘
 
@@ -52,8 +56,9 @@ python collect_pension.py
 
 ### GitHub 푸시 전 체크리스트
 
-1. **연금복권** `data/pension.json` 최신 회차 확인 → 신규 회차 있으면 `python collect_pension.py` 먼저 실행
-2. **로또**는 별도 확인 불필요 — `cache/lotto.json`은 `.gitignore`에 있어 배포되지 않으며, Render 서버가 앱 시작 시 `api.lotto-haru.kr`에서 자동으로 최신 데이터를 수집함
+GitHub Actions가 두 종목 모두 자동 갱신하므로 일반적으론 별도 작업 불필요.
+- 추첨 직후 즉시 반영이 필요하면 GitHub Actions의 "Run workflow" 버튼 또는 로컬에서 `python collect_lotto.py` / `python collect_pension.py` 후 커밋
+- `cache/` 디렉토리는 더 이상 사용하지 않음 (이전 런타임 캐시 잔여 폴더, `.gitignore`로 무시됨)
 
 ### 배포
 
@@ -65,7 +70,8 @@ python collect_pension.py
 
 ### 외부 API 주의사항
 
-- `dhlottery.co.kr` 공식 사이트는 봇 차단으로 직접 HTTP 요청 불가 (errorPage 리다이렉트)
-- 로또 JSON API(`common.do?method=getLottoNumber`)도 동일하게 차단됨 → `api.lotto-haru.kr` 사용
-- 연금복권 신규 페이지 URL: `https://www.dhlottery.co.kr/pt720/result` (구 URL `gameResult.do?method=win720`은 404)
-- `collect_pension.py`가 사용하는 `selectPstPt720WnList.do`는 세션 없이 접근 가능
+- 동행복권 사이트는 봇 차단(Tracer 솔루션)이 강함 — 구 엔드포인트(`common.do?method=getLottoNumber`, `/gameResult.do?method=byWin`, 모바일 도메인 `m.dhlottery.co.kr`)는 errorPage / error.html 로 리다이렉트되어 직접 호출 불가
+- 정상 호출 가능한 엔드포인트(세션 쿠키 + UA + Referer + `X-Requested-With: XMLHttpRequest`):
+  - 로또: `https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do?srchDir={center|older|latest}&srchLtEpsd=N` (또는 `srchCursorLtEpsd=N`) — 한 번에 10건씩, `tm1WnNo~tm6WnNo`, `bnsWnNo`, `ltRflYmd` 포함
+  - 연금복권: `https://www.dhlottery.co.kr/pt720/selectPstPt720WnList.do` — 전체 회차를 한 번에 반환
+- 최신 회차는 `https://www.dhlottery.co.kr/lt645/result` HTML의 `$("#d-trigger_txt").text("NNNN" + '회')` 패턴에서 추출 (서버사이드 렌더링됨)

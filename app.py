@@ -1,74 +1,28 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
-import httpx
-import asyncio
 import random
 import json
 import logging
 from pathlib import Path
-from datetime import datetime, timedelta, date, timezone
+from datetime import datetime, timedelta, timezone
 from collections import Counter
-from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = Path("cache")
-LOTTO_CACHE = CACHE_DIR / "lotto.json"
-PENSION_CACHE = CACHE_DIR / "pension.json"
-CACHE_TTL_HOURS = 24
-
-
-def is_cache_valid(path: Path) -> bool:
-    if not path.exists():
-        return False
-    age = datetime.now() - datetime.fromtimestamp(path.stat().st_mtime)
-    return age < timedelta(hours=CACHE_TTL_HOURS)
-
-
-LOTTO_HARU_API = "https://api.lotto-haru.kr/win/analysis.json"
+LOTTO_DATA_FILE = Path("data/lotto.json")
 PENSION_DATA_FILE = Path("data/pension.json")
-BATCH_SIZE = 50  # 한 번에 요청할 회차 수 (파이프로 구분)
 
 
-async def fetch_latest_round(client: httpx.AsyncClient) -> int:
-    r = await client.get(LOTTO_HARU_API, timeout=10)
-    return r.json()[0]["chasu"]
-
-
-async def fetch_lotto_batch(client: httpx.AsyncClient, sem: asyncio.Semaphore, rounds: list[int]):
-    async with sem:
-        try:
-            chasu = "|".join(str(n) for n in rounds)
-            r = await client.get(LOTTO_HARU_API, params={"chasu": chasu}, timeout=20)
-            return [item["ball"] for item in r.json()]
-        except Exception:
-            return []
-
-
-async def fetch_lotto_data() -> list:
-    if is_cache_valid(LOTTO_CACHE):
-        with open(LOTTO_CACHE) as f:
-            return json.load(f)
-
-    async with httpx.AsyncClient() as client:
-        latest = await fetch_latest_round(client)
-        logger.info(f"로또 데이터 수집 시작 (1~{latest}회)")
-
-        batches = [list(range(i, min(i + BATCH_SIZE, latest + 1))) for i in range(1, latest + 1, BATCH_SIZE)]
-        sem = asyncio.Semaphore(5)
-        tasks = [fetch_lotto_batch(client, sem, b) for b in batches]
-        results = await asyncio.gather(*tasks)
-
-    all_data = [nums for batch in results for nums in batch]
-
-    CACHE_DIR.mkdir(exist_ok=True)
-    with open(LOTTO_CACHE, "w") as f:
-        json.dump(all_data, f)
-
-    logger.info(f"로또 데이터 수집 완료: {len(all_data)}회차")
-    return all_data
+def load_lotto_data() -> list[list[int]]:
+    """배포 시 포함된 data/lotto.json 을 읽어 번호 리스트만 반환"""
+    if not LOTTO_DATA_FILE.exists():
+        logger.warning("data/lotto.json 없음 — collect_lotto.py 를 먼저 실행하세요")
+        return []
+    with open(LOTTO_DATA_FILE, encoding="utf-8") as f:
+        records = json.load(f)
+    return [r["numbers"] for r in records]
 
 
 def load_pension_data() -> list:
@@ -79,6 +33,12 @@ def load_pension_data() -> list:
     with open(PENSION_DATA_FILE, encoding="utf-8") as f:
         records = json.load(f)
     return [r["numbers"] for r in records]
+
+
+def file_mtime_str(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
 
 
 def generate_lotto(all_numbers: list) -> dict:
@@ -100,10 +60,6 @@ def generate_lotto(all_numbers: list) -> dict:
     top5 = [{"number": n, "count": c} for n, c in sorted_by_freq[:5]]
     bottom5 = [{"number": n, "count": c} for n, c in sorted_by_freq[-5:]]
 
-    cache_updated = None
-    if LOTTO_CACHE.exists():
-        cache_updated = datetime.fromtimestamp(LOTTO_CACHE.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-
     return {
         "high_freq": result1,
         "low_freq": result2,
@@ -111,7 +67,7 @@ def generate_lotto(all_numbers: list) -> dict:
         "round_range": {"start": 1, "end": len(all_numbers)},
         "top5": top5,
         "bottom5": bottom5,
-        "cache_updated": cache_updated,
+        "cache_updated": file_mtime_str(LOTTO_DATA_FILE),
     }
 
 
@@ -154,17 +110,13 @@ def generate_pension(all_numbers: list) -> dict:
             "bottom_count": counter[bottom],
         })
 
-    cache_updated = None
-    if PENSION_DATA_FILE.exists():
-        cache_updated = datetime.fromtimestamp(PENSION_DATA_FILE.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-
     return {
         "high_freq": high_freq,
         "low_freq": low_freq,
         "total_rounds": len(all_numbers),
         "round_range": {"start": 1, "end": len(all_numbers)},
         "position_stats": position_stats,
-        "cache_updated": cache_updated,
+        "cache_updated": file_mtime_str(PENSION_DATA_FILE),
     }
 
 
@@ -172,25 +124,17 @@ KST = timezone(timedelta(hours=9))
 DEPLOY_TIME = datetime.now(KST).strftime("%Y년 %m월 %d일 %H:%M")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # 앱 시작 시 백그라운드에서 데이터 미리 수집
-    CACHE_DIR.mkdir(exist_ok=True)
-    asyncio.create_task(fetch_lotto_data())
-    yield
-
-
-app = FastAPI(title="복권번호생성기", lifespan=lifespan)
+app = FastAPI(title="복권번호생성기")
 
 
 @app.get("/api/lotto")
 async def api_lotto():
     try:
-        data = await fetch_lotto_data()
+        data = load_lotto_data()
         return generate_lotto(data)
     except Exception as e:
         logger.error(f"로또 생성 오류: {e}")
-        return JSONResponse({"error": "데이터 로드에 실패했습니다. 잠시 후 다시 시도해주세요."}, status_code=500)
+        return JSONResponse({"error": "데이터 로드에 실패했습니다."}, status_code=500)
 
 
 @app.get("/api/pension")
@@ -201,19 +145,6 @@ async def api_pension():
     except Exception as e:
         logger.error(f"연금복권 생성 오류: {e}")
         return JSONResponse({"error": "데이터 로드에 실패했습니다."}, status_code=500)
-
-
-@app.get("/api/status")
-async def api_status():
-    lotto_rounds = 0
-    if LOTTO_CACHE.exists():
-        with open(LOTTO_CACHE) as f:
-            lotto_rounds = len(json.load(f))
-    return {
-        "lotto_cached": is_cache_valid(LOTTO_CACHE),
-        "lotto_rounds": lotto_rounds,
-        "pension_cached": is_cache_valid(PENSION_CACHE),
-    }
 
 
 @app.get("/api/deploy-time")
