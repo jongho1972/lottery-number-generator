@@ -62,11 +62,11 @@ GitHub Actions가 두 종목 모두 자동 갱신하므로 일반적으론 별�
 
 ### 배포
 
-- **플랫폼**: Render (무료 플랜)
+- **플랫폼**: j-hawk VPS (Hetzner CAX11 ARM · Docker Compose + Caddy)
 - **저장소**: https://github.com/jongho1972/lottery-number-generator
-- **서비스 URL**: https://lottery-number-generator.onrender.com
-- GitHub `main` 브랜치 푸시 시 Render 자동 배포
-- 무료 플랜은 비활성 시 스핀다운 → 첫 요청 약 50초 대기 발생
+- **서비스 URL**: https://lottery.jhawk.kr
+- GitHub `main` 브랜치 푸시 시 `.github/workflows/deploy.yml`이 VPS에 SSH 접속 → `git reset --hard origin/main` → `docker compose build/up lottery` → `/healthz` 헬스체크
+- 공통 인프라·롤백·트러블슈팅: 워크스페이스 루트 `deploy/README.md` 또는 `vps-deploy` 스킬
 
 ### 외부 API 주의사항
 
