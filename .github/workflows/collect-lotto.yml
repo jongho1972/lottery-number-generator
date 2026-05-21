@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,9 +25,11 @@ jobs:
         run: python collect_lotto.py
 
       - name: Commit and push if changed
+        id: commit
         run: |
           if git diff --quiet data/lotto.json; then
             echo "변경사항 없음 — 커밋 건너뜀"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -36,3 +39,13 @@ jobs:
           git add data/lotto.json
           git commit -m "로또 데이터 ${LATEST} 자동 업데이트"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger deploy if data changed
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # deploy.yml은 paths-ignore:data/** 이라 데이터 푸시로는 안 걸림.
+          # workflow_dispatch는 GITHUB_TOKEN으로도 트리거 가능(정책 예외)이므로 명시 호출.
+          gh workflow run deploy.yml --ref main
