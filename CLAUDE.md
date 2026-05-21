@@ -39,7 +39,8 @@ python collect_pension.py
 
 - **로또**: `collect_lotto.py`가 `/lt645/result` 페이지로 세션 쿠키 확보 + 최신 회차 파싱 → `selectPstLt645InfoNew.do?srchDir=older&srchCursorLtEpsd=N` 으로 10건씩 페이지네이션해 전체 수집 → `data/lotto.json` 저장. 앱은 이 파일을 정적으로 읽음(`load_lotto_data()`).
 - **연금복권**: `collect_pension.py`가 `/pt720/selectPstPt720WnList.do`로 전체 회차 수집 → `data/pension.json` 저장. 앱은 이 파일을 정적으로 읽음(`load_pension_data()`).
-- 두 종목 모두 GitHub Actions(.github/workflows/collect-{lotto,pension}.yml)가 추첨 다음 날 KST 09:00에 cron 실행 → 변경 사항이 있을 경우 `data/*.json`을 자동 커밋·푸시 → VPS 자동 배포로 반영.
+- 두 종목 모두 GitHub Actions(.github/workflows/collect-{lotto,pension}.yml)가 추첨 다음 날 KST 09:00에 cron 실행 → 변경 사항이 있을 경우 `data/*.json`을 자동 커밋·푸시 → **이어서 같은 잡이 `gh workflow run deploy.yml`로 배포를 명시 트리거** → VPS 반영.
+- ⚠️ 데이터 자동 반영의 핵심 주의점: `deploy.yml`은 `paths-ignore: data/**` 라서 데이터 푸시 자체로는 배포가 걸리지 않고, `Dockerfile`이 `COPY . .`로 데이터를 이미지에 굽기 때문에 반영하려면 반드시 재빌드(=배포)가 필요하다. 또한 GitHub 정책상 `GITHUB_TOKEN`이 만든 push는 다른 워크플로우를 트리거하지 못한다(`workflow_dispatch`·`repository_dispatch`만 예외). 그래서 수집 잡이 `actions: write` 권한으로 `deploy.yml`을 `workflow_dispatch`로 직접 호출하는 구조다. 이 트리거 스텝을 제거하면 cron이 GitHub엔 데이터를 올려도 라이브 사이트엔 반영되지 않으니 주의.
 
 ### 번호 생성 알고리즘
 
@@ -56,8 +57,9 @@ python collect_pension.py
 
 ### GitHub 푸시 전 체크리스트
 
-GitHub Actions가 두 종목 모두 자동 갱신하므로 일반적으론 별도 작업 불필요.
-- 추첨 직후 즉시 반영이 필요하면 GitHub Actions의 "Run workflow" 버튼 또는 로컬에서 `python collect_lotto.py` / `python collect_pension.py` 후 커밋
+GitHub Actions가 두 종목 모두 자동 갱신·배포하므로 일반적으론 별도 작업 불필요.
+- 추첨 직후 즉시 반영이 필요하면 GitHub Actions에서 collect 워크플로우의 "Run workflow" 버튼 실행 → 변경분 커밋·푸시 후 배포까지 자동 진행됨
+- 로컬에서 `python collect_lotto.py` / `python collect_pension.py` 후 직접 커밋·푸시한 경우, 데이터만 바뀌었다면 `deploy.yml`이 `paths-ignore: data/**`로 안 걸리므로 `gh workflow run deploy.yml --ref main`으로 배포를 수동 트리거해야 라이브에 반영된다
 - `cache/` 디렉토리는 더 이상 사용하지 않음 (이전 런타임 캐시 잔여 폴더, `.gitignore`로 무시됨)
 
 ### 배포
@@ -66,6 +68,7 @@ GitHub Actions가 두 종목 모두 자동 갱신하므로 일반적으론 별�
 - **저장소**: https://github.com/jongho1972/lottery-number-generator
 - **서비스 URL**: https://lottery.jhawk.kr
 - GitHub `main` 브랜치 푸시 시 `.github/workflows/deploy.yml`이 VPS에 SSH 접속 → `git reset --hard origin/main` → `docker compose build/up lottery` → `/healthz` 헬스체크
+- 단, `deploy.yml`은 `paths-ignore: data/** · cache/** · *.md · *.ipynb` 로 코드 변경이 없는 푸시(데이터·문서만)는 배포하지 않는다. 데이터 갱신은 수집 워크플로우가 `workflow_dispatch`로 별도 트리거하고, 데이터·문서만 수동 반영할 때는 `gh workflow run deploy.yml --ref main` 사용
 - 공통 인프라·롤백·트러블슈팅: 워크스페이스 루트 `deploy/README.md` 또는 `vps-deploy` 스킬
 
 ### 외부 API 주의사항
