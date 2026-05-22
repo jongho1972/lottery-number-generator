@@ -2,8 +2,9 @@ name: Collect Pension Lottery Data
 
 on:
   schedule:
-    # 매주 금요일 KST 09:00 (UTC 금요일 00:00) — 연금복권 추첨일(목요일 저녁) 이후
-    - cron: "0 0 * * 5"
+    # 매주 금요일 KST 10:43 (UTC 금요일 01:43) — 연금복권 추첨일(목요일 저녁) 이후
+    # 매시 정각·UTC 자정은 GitHub Actions 부하 집중으로 스케줄 지연/누락이 잦아 off-peak 분으로 설정
+    - cron: "43 1 * * 5"
   workflow_dispatch:
 
 jobs:

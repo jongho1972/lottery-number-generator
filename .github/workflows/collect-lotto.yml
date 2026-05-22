@@ -2,8 +2,9 @@ name: Collect Lotto 6/45 Data
 
 on:
   schedule:
-    # 매주 일요일 KST 09:00 (UTC 일요일 00:00) — 로또 추첨일(토요일 20:35) 이후
-    - cron: "0 0 * * 0"
+    # 매주 일요일 KST 10:37 (UTC 일요일 01:37) — 로또 추첨일(토요일 20:35) 이후
+    # 매시 정각·UTC 자정은 GitHub Actions 부하 집중으로 스케줄 지연/누락이 잦아 off-peak 분으로 설정
+    - cron: "37 1 * * 0"
   workflow_dispatch:
 
 jobs:

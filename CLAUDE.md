@@ -32,14 +32,14 @@ python collect_pension.py
 
 | 복권 종류 | 데이터 소스 | 정적 파일 | 자동 갱신 (KST) |
 |-----------|------------|------|------|
-| 로또 6/45 | `www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do` (동행복권 공식 ajax) | `data/lotto.json` | 매주 일요일 09:00 |
-| 연금복권 720+ | `www.dhlottery.co.kr/pt720/selectPstPt720WnList.do` (동행복권 공식 API) | `data/pension.json` | 매주 금요일 09:00 |
+| 로또 6/45 | `www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do` (동행복권 공식 ajax) | `data/lotto.json` | 매주 일요일 10:37 |
+| 연금복권 720+ | `www.dhlottery.co.kr/pt720/selectPstPt720WnList.do` (동행복권 공식 API) | `data/pension.json` | 매주 금요일 10:43 |
 
 ### 데이터 흐름
 
 - **로또**: `collect_lotto.py`가 `/lt645/result` 페이지로 세션 쿠키 확보 + 최신 회차 파싱 → `selectPstLt645InfoNew.do?srchDir=older&srchCursorLtEpsd=N` 으로 10건씩 페이지네이션해 전체 수집 → `data/lotto.json` 저장. 앱은 이 파일을 정적으로 읽음(`load_lotto_data()`).
 - **연금복권**: `collect_pension.py`가 `/pt720/selectPstPt720WnList.do`로 전체 회차 수집 → `data/pension.json` 저장. 앱은 이 파일을 정적으로 읽음(`load_pension_data()`).
-- 두 종목 모두 GitHub Actions(.github/workflows/collect-{lotto,pension}.yml)가 추첨 다음 날 KST 09:00에 cron 실행 → 변경 사항이 있을 경우 `data/*.json`을 자동 커밋·푸시 → **이어서 같은 잡이 `gh workflow run deploy.yml`로 배포를 명시 트리거** → VPS 반영.
+- 두 종목 모두 GitHub Actions(.github/workflows/collect-{lotto,pension}.yml)가 추첨 다음 날 오전(로또 일 10:37 / 연금복권 금 10:43 KST)에 cron 실행 → 변경 사항이 있을 경우 `data/*.json`을 자동 커밋·푸시 → **이어서 같은 잡이 `gh workflow run deploy.yml`로 배포를 명시 트리거** → VPS 반영. (cron이 매시 정각·UTC 자정을 피하는 이유는 GitHub Actions 스케줄 부하 집중 구간에서 지연·누락이 잦기 때문 — best-effort라 정시 실행은 보장되지 않으니, 추첨 직후 즉시 반영이 필요하면 collect 워크플로우를 수동 실행할 것)
 - ⚠️ 데이터 자동 반영의 핵심 주의점: `deploy.yml`은 `paths-ignore: data/**` 라서 데이터 푸시 자체로는 배포가 걸리지 않고, `Dockerfile`이 `COPY . .`로 데이터를 이미지에 굽기 때문에 반영하려면 반드시 재빌드(=배포)가 필요하다. 또한 GitHub 정책상 `GITHUB_TOKEN`이 만든 push는 다른 워크플로우를 트리거하지 못한다(`workflow_dispatch`·`repository_dispatch`만 예외). 그래서 수집 잡이 `actions: write` 권한으로 `deploy.yml`을 `workflow_dispatch`로 직접 호출하는 구조다. 이 트리거 스텝을 제거하면 cron이 GitHub엔 데이터를 올려도 라이브 사이트엔 반영되지 않으니 주의.
 
 ### 번호 생성 알고리즘
