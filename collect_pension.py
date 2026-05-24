@@ -6,6 +6,9 @@
 """
 
 import json
+import socket
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -18,6 +21,24 @@ USER_AGENT = (
     "Chrome/130.0.0.0 Safari/537.36"
 )
 
+TIMEOUT = 30  # 단일 요청 타임아웃(초). GitHub Actions 러너에서 동행복권 응답이 느릴 때 대비
+MAX_RETRIES = 4  # 타임아웃·일시적 연결 오류 시 최대 시도 횟수 (지수 백오프)
+
+
+def urlopen_with_retry(req: urllib.request.Request):
+    """타임아웃·일시적 연결 오류를 지수 백오프로 재시도하며 응답을 반환한다."""
+    last_err: Exception | None = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            return urllib.request.urlopen(req, timeout=TIMEOUT)
+        except (urllib.error.URLError, TimeoutError, socket.timeout) as e:
+            last_err = e
+            if attempt < MAX_RETRIES:
+                wait = 2 ** attempt
+                print(f"  요청 실패({e}) — {wait}s 후 재시도 ({attempt}/{MAX_RETRIES - 1})")
+                time.sleep(wait)
+    raise RuntimeError(f"{MAX_RETRIES}회 시도 후에도 요청 실패: {last_err}")
+
 
 def fetch_pension_data() -> list[dict]:
     print("연금복권 데이터 수집 중...")
@@ -29,7 +50,7 @@ def fetch_pension_data() -> list[dict]:
             "Accept": "application/json, text/plain, */*",
         },
     )
-    with urllib.request.urlopen(req, timeout=15) as r:
+    with urlopen_with_retry(req) as r:
         raw = json.loads(r.read())
 
     results = raw["data"]["result"]

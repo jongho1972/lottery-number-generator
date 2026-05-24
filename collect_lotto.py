@@ -7,6 +7,9 @@
 
 import json
 import re
+import socket
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import http.cookiejar
@@ -24,6 +27,23 @@ USER_AGENT = (
 )
 
 PAGE_SIZE = 10  # 엔드포인트가 한 번에 반환하는 회차 수 (고정)
+TIMEOUT = 30  # 단일 요청 타임아웃(초). GitHub Actions 러너에서 동행복권 응답이 느릴 때 대비
+MAX_RETRIES = 4  # 타임아웃·일시적 연결 오류 시 최대 시도 횟수 (지수 백오프)
+
+
+def open_with_retry(opener: urllib.request.OpenerDirector, url: str):
+    """타임아웃·일시적 연결 오류를 지수 백오프로 재시도하며 응답을 반환한다."""
+    last_err: Exception | None = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            return opener.open(url, timeout=TIMEOUT)
+        except (urllib.error.URLError, TimeoutError, socket.timeout) as e:
+            last_err = e
+            if attempt < MAX_RETRIES:
+                wait = 2 ** attempt
+                print(f"  요청 실패({e}) — {wait}s 후 재시도 ({attempt}/{MAX_RETRIES - 1})")
+                time.sleep(wait)
+    raise RuntimeError(f"{MAX_RETRIES}회 시도 후에도 요청 실패: {last_err}")
 
 
 def build_opener() -> tuple[urllib.request.OpenerDirector, str]:
@@ -36,7 +56,7 @@ def build_opener() -> tuple[urllib.request.OpenerDirector, str]:
         ("X-Requested-With", "XMLHttpRequest"),
         ("Accept", "application/json, text/javascript, */*; q=0.01"),
     ]
-    with opener.open(REFERER, timeout=15) as r:
+    with open_with_retry(opener, REFERER) as r:
         html = r.read().decode("utf-8", errors="ignore")
     return opener, html
 
@@ -55,7 +75,7 @@ def parse_latest_round(html: str) -> int:
 
 def get_json(opener, params: dict) -> dict:
     url = f"{AJAX_URL}?{urllib.parse.urlencode(params)}"
-    with opener.open(url, timeout=15) as r:
+    with open_with_retry(opener, url) as r:
         return json.loads(r.read())
 
 
