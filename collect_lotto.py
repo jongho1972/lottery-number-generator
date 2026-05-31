@@ -79,46 +79,83 @@ def get_json(opener, params: dict) -> dict:
         return json.loads(r.read())
 
 
+def load_existing() -> dict[int, dict]:
+    """기존 lotto.json을 {회차: 레코드} 로 읽는다.
+
+    파일이 없거나 손상됐거나 회차가 1~max로 연속이지 않으면 빈 dict를 반환해
+    전체 재수집으로 강등한다(증분 수집은 stop_at 아래 갭을 메우지 못하므로).
+    """
+    if not OUTPUT_FILE.exists():
+        return {}
+    try:
+        with open(OUTPUT_FILE, encoding="utf-8") as f:
+            existing = {rec["round"]: rec for rec in json.load(f)}
+    except (json.JSONDecodeError, KeyError, OSError):
+        return {}
+    if existing and set(existing) != set(range(1, max(existing) + 1)):
+        print("기존 데이터에 누락 회차 발견 — 전체 재수집으로 강등")
+        return {}
+    return existing
+
+
+def normalize(item: dict) -> dict:
+    numbers = [item[f"tm{i}WnNo"] for i in range(1, 7)]
+    ymd = str(item.get("ltRflYmd", ""))
+    date = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:8]}" if len(ymd) == 8 else ymd
+    return {
+        "round": item["ltEpsd"],
+        "date": date,
+        "numbers": numbers,
+        "bonus": item.get("bnsWnNo"),
+    }
+
+
 def fetch_lotto_data() -> list[dict]:
+    """기존 데이터를 보존하고 새 회차만 증분 수집한다.
+
+    매번 1회차부터 전량 재수집(~123 요청)하면 GitHub Actions 러너에서 한 요청만
+    타임아웃돼도 작업 전체가 실패한다. 그래서 이미 가진 최대 회차(stop_at)까지만
+    older 페이지네이션을 돌고, 그 이전은 기존 데이터를 재사용한다.
+    """
+    existing = load_existing()
+    stop_at = max(existing) if existing else 0
+
     opener, html = build_opener()
     latest = parse_latest_round(html)
-    print(f"로또 데이터 수집 중 (1~{latest}회)...")
+
+    if existing and latest <= stop_at:
+        print(f"이미 최신 회차({stop_at}회)까지 보유 — 신규 데이터 없음")
+        return [existing[ep] for ep in sorted(existing)]
+
+    if existing:
+        print(f"증분 수집: 기존 {stop_at}회 → 최신 {latest}회 ({latest - stop_at}건)")
+    else:
+        print(f"전체 수집: 1~{latest}회")
+
+    collected: dict[int, dict] = dict(existing)
 
     initial = get_json(opener, {"srchDir": "center", "srchLtEpsd": str(latest)})
     initial_list = initial.get("data", {}).get("list", []) or []
     if not initial_list:
         raise RuntimeError("최신 회차 데이터를 받지 못했습니다.")
+    for item in initial_list:
+        collected[item["ltEpsd"]] = normalize(item)
 
-    collected: dict[int, dict] = {item["ltEpsd"]: item for item in initial_list}
-
-    # older 페이지네이션: 가장 작은 회차를 cursor로 다음 10건 반복
+    # older 페이지네이션: 이미 가진 회차(stop_at)에 도달하면 중단
     cursor = min(item["ltEpsd"] for item in initial_list)
-    while cursor > 1:
+    while cursor > max(stop_at, 1):
         data = get_json(opener, {"srchDir": "older", "srchCursorLtEpsd": cursor})
         items = data.get("data", {}).get("list", []) or []
         if not items:
             break
         for item in items:
-            collected[item["ltEpsd"]] = item
+            collected[item["ltEpsd"]] = normalize(item)
         new_cursor = min(item["ltEpsd"] for item in items)
         if new_cursor >= cursor:
             break  # 진행이 없으면 중단
         cursor = new_cursor
 
-    data = []
-    for ep in sorted(collected.keys()):
-        item = collected[ep]
-        numbers = [item[f"tm{i}WnNo"] for i in range(1, 7)]
-        ymd = str(item.get("ltRflYmd", ""))
-        date = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:8]}" if len(ymd) == 8 else ymd
-        data.append({
-            "round": item["ltEpsd"],
-            "date": date,
-            "numbers": numbers,
-            "bonus": item.get("bnsWnNo"),
-        })
-
-    return data
+    return [collected[ep] for ep in sorted(collected)]
 
 
 def main():
