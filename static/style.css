@@ -352,12 +352,13 @@ footer {
 }
 
 footer a {
-  color: var(--text-muted);
-  text-decoration: none;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 footer a:hover {
-  text-decoration: underline;
+  color: var(--accent-dark);
 }
 
 @media (max-width: 400px) {
