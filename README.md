@@ -2,7 +2,7 @@
 
 과거 당첨번호 통계를 분석해 로또 6/45와 연금복권 720+ 번호를 추천해주는 웹 서비스입니다.
 
-🔗 **서비스 주소**: https://lottery-number-generator.onrender.com
+🔗 **서비스 주소**: https://lottery.jhawk.kr
 
 ## 기능
 
