@@ -23,7 +23,7 @@
 }
 
 body {
-  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -373,3 +373,6 @@ footer a:hover {
     font-size: 1.1rem;
   }
 }
+
+/* 폼 요소도 본문 폰트(Pretendard)를 따르게 */
+button,input,select,textarea{font-family:inherit}
