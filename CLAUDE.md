@@ -69,7 +69,7 @@ GitHub Actions가 두 종목 모두 자동 갱신·배포하므로 일반적으�
 - **서비스 URL**: https://lottery.jhawk.kr
 - GitHub `main` 브랜치 푸시 시 `.github/workflows/deploy.yml`이 VPS에 SSH 접속 → `git reset --hard origin/main` → `docker compose build/up lottery` → `/healthz` 헬스체크
 - 단, `deploy.yml`은 `paths-ignore: data/** · cache/** · *.md · *.ipynb` 로 코드 변경이 없는 푸시(데이터·문서만)는 배포하지 않는다. 데이터 갱신은 수집 워크플로우가 `workflow_dispatch`로 별도 트리거하고, 데이터·문서만 수동 반영할 때는 `gh workflow run deploy.yml --ref main` 사용
-- 공통 인프라·롤백·트러블슈팅: 워크스페이스 루트 `deploy/README.md` 또는 `vps-deploy` 스킬
+- 공통 인프라·롤백·트러블슈팅: 워크스페이스 루트 `공용/deploy/README.md` 또는 `vps-deploy` 스킬
 
 ### 외부 API 주의사항
 
