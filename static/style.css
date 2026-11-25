@@ -1,20 +1,22 @@
 /* 다크 고정 + 보라(luck) 강조. 색 기준: 공용/Design_MD/PALETTE.md */
 :root {
   color-scheme: dark;
-  --accent: #bda8fc;         /* 글자·버튼 배경 (8.70 on card) */
-  --accent-hover: #cfc0ff;
-  --on-accent: #0b0c0e;      /* 보라 버튼 위 글자 (9.48) */
-  --bg: #0b0c0e;
-  --card-bg: #15171a;
-  --surface-2: #1c1f23;
-  --text: #f2f3f5;
-  --text-muted: #8f949c;
-  --border: #24272d;
+  --accent: #b3a6dc;         /* 글자·테두리 (8.11 on card) */
+  --accent-hover: #c8bdea;
+  --accent-fill: #e8e8e6;    /* 버튼 배경 실버 */
+  --accent-fill-hover: #f7f7f5;
+  --on-accent: #101112;      /* 실버 버튼 위 글자 (15.41) */
+  --bg: #0c0d0e;
+  --card-bg: #151617;
+  --surface-2: #1c1d1f;
+  --text: #f1f1ef;
+  --text-muted: #93949a;
+  --border: #26272a;
   --border-strong: rgba(255,255,255,0.16);
-  --gold: #e8b762;           /* 얇은 선에만 */
-  --up: #ff6b6b;
-  --down: #5b9dff;
-  --alert: #ff6b6b;
+  --gold: #cfae74;           /* 얇은 선에만 */
+  --up: #ef7f78;
+  --down: #75a7ec;
+  --alert: #ef7f78;
   --radius: 12px;
   --shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.35);
 }
@@ -307,12 +309,12 @@ main {
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--on-accent);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-fill-hover);
 }
 
 .btn:active {
@@ -328,7 +330,7 @@ main {
 .spinner {
   width: 22px;
   height: 22px;
-  border: 3px solid rgba(11,12,14,0.3);
+  border: 3px solid rgba(12,13,14,0.3);
   border-top-color: var(--on-accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
