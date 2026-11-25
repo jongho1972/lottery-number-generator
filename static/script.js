@@ -135,7 +135,7 @@ async function generateLotto() {
     renderLottoDataInfo(data);
   } catch (e) {
     document.getElementById('lotto-high').innerHTML =
-      `<span class="placeholder" style="color:#c00">${e.message}</span>`;
+      `<span class="placeholder" style="color:var(--alert)">${e.message}</span>`;
     document.getElementById('lotto-low').innerHTML = '';
   } finally {
     setLoading('lotto-btn', false);
@@ -155,7 +155,7 @@ async function generatePension() {
     renderPensionDataInfo(data);
   } catch (e) {
     document.getElementById('pension-high').innerHTML =
-      `<span class="placeholder" style="color:#c00">${e.message}</span>`;
+      `<span class="placeholder" style="color:var(--alert)">${e.message}</span>`;
     document.getElementById('pension-low').innerHTML = '';
   } finally {
     setLoading('pension-btn', false);
